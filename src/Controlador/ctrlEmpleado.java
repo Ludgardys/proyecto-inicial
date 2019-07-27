@@ -97,24 +97,38 @@ public class ctrlEmpleado implements ActionListener, KeyListener{
     public void actionPerformed (ActionEvent e){
         
         //INSERTAR
-        if(e.getSource()==vistaFormulario.btnInsertar1){
-            String Cedula=vistaFormulario.txtID.getText().trim();
+        if(e.getSource() == vistaFormulario.btnInsertar1){
+            
+            if(vistaFormulario.txtID.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Rellenar campo Cedula");
+            }
+            else if(vistaFormulario.txtNombre1.getText().equals("")){
+            JOptionPane.showMessageDialog(null, "Rellenar campo Nombre");
+            }
+            else if(vistaFormulario.txtApellido.getText().equals("")){
+                JOptionPane.showMessageDialog(null, "Rellenar Campo Apellido");
+            }
+            else if(vistaFormulario.txtDireccion.getText().equals("")){
+                JOptionPane.showMessageDialog(null, "Rellenar campo Direccion");
+            }
+            
+            String Cedula= vistaFormulario.txtID.getText().trim();
             String Nombre=vistaFormulario.txtNombre1.getText().trim().toLowerCase();
             String Apellido=vistaFormulario.txtApellido.getText().trim();
             String Direccion=vistaFormulario.txtDireccion.getText().trim();
             String Telefono=vistaFormulario.txtTelefono.getText().trim();
             
-            String rptaRegistro=modeloFormulario.insertar(Cedula, Nombre, Apellido, Direccion, Telefono);
+            String rptaRegistro = modeloFormulario.insertar(Cedula, Nombre, Apellido, Direccion, Telefono);
             if(rptaRegistro!=null){
                 JOptionPane.showMessageDialog(null, rptaRegistro);
                 limpiar1();
               
             }else{
                 JOptionPane.showMessageDialog(null,"Error al insertar");
-                 limpiar1();
+               
             }
         }
-        if (e.getSource()==vistaFormulario.btnActualizar1){
+        if (e.getSource() == vistaFormulario.btnActualizar1){
             LlenarTabla(vistaFormulario.jtDatos1);
            
         }
