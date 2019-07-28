@@ -10,7 +10,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import static java.lang.System.out;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,10 +34,10 @@ public class ctrlEmpleado implements ActionListener, KeyListener{
         this.vistaFormulario= vistaFormulario;
         this.modeloFormulario=  modeloFormulario;
         
-        this.vistaFormulario.btnInsertar1.addActionListener(this);
-        this.vistaFormulario.btnActualizar1.addActionListener(this);
-        this.vistaFormulario.btnEliminar1.addActionListener(this);
-        this.vistaFormulario.btnEditar1.addActionListener(this);
+        this.vistaFormulario.empBtnInsertar.addActionListener(this);
+        this.vistaFormulario.btnBuscar.addActionListener(this);
+        this.vistaFormulario.empBtnEliminar.addActionListener(this);
+        this.vistaFormulario.btnUpdate.addActionListener(this);
         this.vistaFormulario.txtID.addActionListener(this);
         this.vistaFormulario.txtNombre1.addActionListener(this);
         this.vistaFormulario.txtApellido.addActionListener(this);
@@ -48,11 +52,11 @@ public class ctrlEmpleado implements ActionListener, KeyListener{
  public void LlenarTabla(JTable tablaE){                      //Modelo para la tabla
         DefaultTableModel modeloE= new DefaultTableModel();
         tablaE.setModel(modeloE);
-        modeloE.addColumn("Cédula");
+        modeloE.addColumn("Cedula");
         modeloE.addColumn("Nombre");
         modeloE.addColumn("Apellido");
-        modeloE.addColumn("Dirección");
-        modeloE.addColumn("Teléfono");
+        modeloE.addColumn("Direccion");
+        modeloE.addColumn("Telefono");
         
         Object[]Columnas=new Object[5];
         int NumRegistros=modeloFormulario.listar().size();
@@ -97,7 +101,7 @@ public class ctrlEmpleado implements ActionListener, KeyListener{
     public void actionPerformed (ActionEvent e){
         
         //INSERTAR
-        if(e.getSource() == vistaFormulario.btnInsertar1){
+        if(e.getSource() == vistaFormulario.empBtnInsertar){
             
             if(vistaFormulario.txtID.getText().equals("")){
             JOptionPane.showMessageDialog(null, "Rellenar campo Cedula");
@@ -112,11 +116,11 @@ public class ctrlEmpleado implements ActionListener, KeyListener{
                 JOptionPane.showMessageDialog(null, "Rellenar campo Direccion");
             }
             
-            String Cedula= vistaFormulario.txtID.getText().trim();
-            String Nombre=vistaFormulario.txtNombre1.getText().trim().toLowerCase();
-            String Apellido=vistaFormulario.txtApellido.getText().trim();
-            String Direccion=vistaFormulario.txtDireccion.getText().trim();
-            String Telefono=vistaFormulario.txtTelefono.getText().trim();
+            String Cedula = vistaFormulario.txtID.getText().trim();
+            String Nombre  = vistaFormulario.txtNombre1.getText().trim().toLowerCase();
+            String Apellido = vistaFormulario.txtApellido.getText().trim();
+            String Direccion = vistaFormulario.txtDireccion.getText().trim();
+            String Telefono = vistaFormulario.txtTelefono.getText().trim();
             
             String rptaRegistro = modeloFormulario.insertar(Cedula, Nombre, Apellido, Direccion, Telefono);
             if(rptaRegistro!=null){
@@ -128,15 +132,63 @@ public class ctrlEmpleado implements ActionListener, KeyListener{
                
             }
         }
-        if (e.getSource() == vistaFormulario.btnActualizar1){
-            LlenarTabla(vistaFormulario.jtDatos1);
-           
-        }
+        //BUSCAR
+          try
+    {
         
+        if (e.getSource() == vistaFormulario.btnBuscar){
+            
+            if(!vistaFormulario.txtID.getText().equals("")){
+                
+                Conexion conn = new Conexion();
+        
+        Connection bd = conn.obtenerConexion();
+        
+        // select para buscar los colaboradores en la DB
+        String queryColaboradores = "SELECT * FROM colaboradores WHERE Cedula = '" +vistaFormulario.txtID.getText()+"'";
+      Statement st = bd.createStatement();
+      
+      // execute the query, and get a java resultset
+      ResultSet rs = st.executeQuery(queryColaboradores);
+      
+      
+     if (!rs.isBeforeFirst() ) {    
+          JOptionPane.showMessageDialog(null, "No existe cedula");
+    System.out.println("No existe valores"); 
+           } 
+      else{
+         
+          while (rs.next())
+      {
+              rs.getString("Cedula");
+                vistaFormulario.txtNombre1.setText(rs.getString("Nombre"));  
+                vistaFormulario.txtApellido.setText(rs.getString("Apellido"));
+                vistaFormulario.txtDireccion.setText(rs.getString("Direccion"));
+                vistaFormulario.txtTelefono.setText(rs.getString("Telefono"));
+                    
+     
        
+      }
+     }
+                rs.close();
+        st.close();
+        bd.close();
         
-        //EDITAR
-        if(e.getSource()==vistaFormulario.btnEditar1){
+        }else{
+            JOptionPane.showMessageDialog(null, "Introduzca la cedula a buscar");
+        }
+        }
+       
+    }catch(Exception ex)
+    {
+      System.err.println("Got an exception! ");
+      System.err.println(ex.getMessage());
+    }
+        
+    
+        
+        //ACTUALIZAR
+        if(e.getSource()==vistaFormulario.btnUpdate){
             int filaEditar=vistaFormulario.jtDatos1
                     .getSelectedRow();
             int numFs=vistaFormulario.jtDatos1.getSelectedRowCount();             //cantidad de filas seleccionadas
@@ -144,12 +196,12 @@ public class ctrlEmpleado implements ActionListener, KeyListener{
             if(filaEditar>=0&& numFs==1){
                 vistaFormulario.txtID.setText(String.valueOf(vistaFormulario.jtDatos1.getValueAt(filaEditar,0)));
                 vistaFormulario.txtID.setEditable(false);
-                vistaFormulario.btnInsertar1.setEnabled(false);
-                vistaFormulario.btnEditar1.setEnabled(false);
-                vistaFormulario.btnEliminar1.setEnabled(false);
+                vistaFormulario.empBtnInsertar.setEnabled(false);
+                vistaFormulario.btnUpdate.setEnabled(false);
+                vistaFormulario.empBtnEliminar.setEnabled(false);
                 vistaFormulario.txtBusqueda1.setEnabled(false);
-                vistaFormulario.btnActualizar1.setEnabled(false);
-                vistaFormulario.btnLimpiar1.setEnabled(false);
+                vistaFormulario.btnBuscar.setEnabled(false);
+                vistaFormulario.empBtnLimpiar.setEnabled(false);
                    
             }else{
                 JOptionPane.showMessageDialog(null, "Solo se permite seleccionar una fila");
@@ -179,13 +231,13 @@ public class ctrlEmpleado implements ActionListener, KeyListener{
                 }
                 
                 limpiar();
-                vistaFormulario.btnInsertar1.setEnabled(true);
-                vistaFormulario.btnEditar1.setEnabled(true);
-                vistaFormulario.btnEliminar1.setEnabled(true);
+                vistaFormulario.empBtnInsertar.setEnabled(true);
+                vistaFormulario.btnUpdate.setEnabled(true);
+                vistaFormulario.empBtnEliminar.setEnabled(true);
                 vistaFormulario.txtBusqueda1.setEnabled(true);
                 vistaFormulario.btnOK1.setEnabled(false);
-                vistaFormulario.btnActualizar1.setEnabled(true);
-                vistaFormulario.btnLimpiar1.setEnabled(true);
+                vistaFormulario.btnBuscar.setEnabled(true);
+                vistaFormulario.empBtnLimpiar.setEnabled(true);
         
                 
             }
@@ -193,7 +245,7 @@ public class ctrlEmpleado implements ActionListener, KeyListener{
         
         
         //BOTON ELIMINAR
-            if(e.getSource()==vistaFormulario.btnEliminar1){
+            if(e.getSource()==vistaFormulario.empBtnEliminar){
                 int filaInicio=vistaFormulario.jtDatos1.getSelectedRow();
                 int numFS=vistaFormulario.jtDatos1.getSelectedRowCount();
                 ArrayList<String>listaCedula=new ArrayList();
@@ -220,7 +272,7 @@ public class ctrlEmpleado implements ActionListener, KeyListener{
                 }
             }
             
-            if(e.getSource()==vistaFormulario.btnLimpiar1){
+            if(e.getSource()==vistaFormulario.empBtnLimpiar){
             limpiar1();
         }
           
@@ -257,8 +309,8 @@ public class ctrlEmpleado implements ActionListener, KeyListener{
         modeloE.addColumn("Cedula");
         modeloE.addColumn("Nombre");
         modeloE.addColumn("Apellido");
-        modeloE.addColumn("Dirección");
-        modeloE.addColumn("Teléfono");
+        modeloE.addColumn("Direccion");
+        modeloE.addColumn("Telefono");
         
         
         Object[]Columnas=new Object[5];
